@@ -13,6 +13,23 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+
+#define BUFFERSIZE 256
+
+bool isValidTextArray(uint8_t *text)
+{
+    if(text==nullptr)
+    {
+        printf("textChecks:: CAUTION. nullptr\r\n");
+        return false;
+    }
+    if(strlen((const char*)text)>=BUFFERSIZE || strlen((const char*)text)<=0)
+    {
+        printf("textChecks:: CAUTION. buffer overflow attempt\r\n");
+        return false;
+    }
+    return true;
+}
 /* Decodes a 7 bit GSM encoding string to 8 bit ASCII null terminated string.
  *
  * input: ASCII 7 bit GSM string
@@ -48,12 +65,15 @@ void encode(char *input, uint32_t *encodedLen, uint8_t *encoded)
  * returns: nothing
  */
 void testCoDec(uint8_t *encodedText)
-{
-    uint8_t decoded[256];
-    uint8_t encoded[256];
-    uint8_t outputLen;
+{   
+    if(!isValidTextArray(encodedText))
+        return;
 
-    uint32_t originalLen = strlen(encodedText);
+    
+    uint8_t decoded[BUFFERSIZE];
+    uint8_t encoded[BUFFERSIZE];
+    uint8_t outputLen;
+    uint32_t originalLen = strlen((const char*)encodedText);
     uint32_t encodedLen = 0;
 
     decode(encodedText, originalLen, decoded);
