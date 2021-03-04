@@ -76,13 +76,20 @@ void testCoDec(uint8_t *encodedText)
     uint32_t originalLen = strlen((const char*)encodedText);
     uint32_t encodedLen = 0;
 
-    decode(encodedText, originalLen, decoded);
+    decode((uint8_t*)encodedText, originalLen, (char*)decoded);
     printf("Decoded = '%s'\r\n", decoded);
-    encode(decoded, &encodedLen, encoded);
+    encode((char*)decoded, &encodedLen, encoded);
 
     if (memcmp(encodedText, encoded, originalLen))
         printf("Error encode result does not match original encoded text\r\n");
 }
+
+void testCoDec(const char * encodedText)
+{
+    testCoDec((uint8_t *)encodedText);
+}
+
+
 
 /* Test program for the 7BIT CodDec
  *
