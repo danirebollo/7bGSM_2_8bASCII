@@ -35,6 +35,26 @@ bool isValidTextArray(uint8_t *text)
     return true;
 }
 
+void encodeOneByte(uint8_t input, uint8_t *encoded)
+{
+    //TODO reverse decoder.
+
+    //First get special characters
+    if ((input >= 0 && input <= 31) || (input == 36) || (input >= 58 && input <= 64) || (input >= 91 && input <= 96) || (input >= 123 && input <= 127))
+    {
+        *encoded = ' ';
+        //TODO transform special characters
+
+        //printf("encode:: character '%d'-'%c'\r\n", input, *encoded);
+        return;
+    }
+
+    //if it is not special then is ASCII
+
+    *encoded = input;
+    //printf("encode:: character '%d'-'%c'\r\n", input, *encoded);
+}
+
 void decodeOneByte(uint8_t input, char *decoded)
 {
     //First get special characters
@@ -73,8 +93,8 @@ void decode(uint8_t *input, uint32_t length7bits, char *decoded)
     }
     else
     {
-        int decodedTempcounter = 0;
-        int sevencounter = 0;
+        uint8_t decodedTempcounter = 0;
+        uint8_t sevencounter = 0;
         for (int i = 0; i < length7bits; i++)
         {
             uint16_t myValue = ((input[i + 1] << 8) + input[i]);
@@ -109,11 +129,34 @@ void decode(uint8_t *input, uint32_t length7bits, char *decoded)
  *
  * returns: nothing
  */
-void encode(char *input, uint32_t *encodedLen, uint8_t *encoded)
+void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedLen)
 {
     //TODO
-    *encodedLen = 0;
+    uint8_t sevencounter = 0;
+    uint8_t encodedarray[inputsize];
+
+    for (int i = 0; i < inputsize; i++)
+    {
+        encodeOneByte(input[i], &encodedarray[i]);
+
+        if (i > 0)
+        {
+            uint8_t ea1 = ((encodedarray[i - 1] >> (sevencounter)) & 0x7F);
+            uint8_t ea2 = (encodedarray[i] << (7 - sevencounter));
+
+            encoded[i - 1] = ea1 + ea2; //It is already a 8b var, no need to force to &  0xFF
+
+            sevencounter++;
+            if (sevencounter > 6)
+                sevencounter = 0;
+        }
+    }
+
+    encoded[encodedLen] = '\0';
+
+    //printf("encoded %d bytes\r\n", inputsize);
 }
+
 /* Tests an encoded string, it first decodes the message and prints the ASCII output and then
 * reencodes it back to compare with the original encoded version, if the encoded string does
  * not match the original one it will print an error message.
@@ -128,18 +171,24 @@ void testCoDec(uint8_t *encodedText)
         return;
 
     char *decoded;
-    uint8_t encoded[BUFFERSIZE];
+    uint8_t *encoded;
     uint8_t outputLen;
     uint32_t originalLen = strlen((const char *)encodedText);
-    uint32_t encodedLen = 0;
 
     uint8_t charactersNum = (originalLen * 8) / 7;
+
     decoded = new char[charactersNum + 1];
     decoded[charactersNum] = '\0';
 
     decode((uint8_t *)encodedText, originalLen, decoded);
     printf("Decoded = '%s' \r\n", decoded);
-    encode((char *)decoded, &encodedLen, encoded);
+
+    int inputsize = strlen((const char *)decoded);
+    int encodedLen = (inputsize * 7) / 8;
+    encoded = new uint8_t[encodedLen + 1];
+    encoded[encodedLen] = '\0';
+    encode((char *)decoded, inputsize, encoded, encodedLen);
+
 
     if (memcmp(encodedText, encoded, originalLen))
         printf("Error encode result does not match original encoded text\r\n");
