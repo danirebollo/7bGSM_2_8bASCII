@@ -16,20 +16,43 @@
 
 #define BUFFERSIZE 256
 
+//const char *ALPHABET = "@£$¥èéùìòÇ\nØø\rÅåΔ ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
+//                       "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+
 bool isValidTextArray(uint8_t *text)
 {
-    if(text==nullptr)
+    if (text == nullptr)
     {
         printf("textChecks:: CAUTION. nullptr\r\n");
         return false;
     }
-    if(strlen((const char*)text)>=BUFFERSIZE || strlen((const char*)text)<=0)
+    //TODO change BUFFERSIZE for dynamic allocation size pointer
+    if (strlen((const char *)text) >= BUFFERSIZE || strlen((const char *)text) <= 0)
     {
         printf("textChecks:: CAUTION. buffer overflow attempt\r\n");
         return false;
     }
     return true;
 }
+
+void decodeOneByte(uint8_t input, char *decoded)
+{
+    //First get special characters
+    if ((input >= 0 && input <= 31) || (input == 36) || (input >= 58 && input <= 64) || (input >= 91 && input <= 96) || (input >= 123 && input <= 127))
+    {
+        *decoded = ' ';
+        //TODO transform special characters
+
+        //printf("decode:: character '%d'-'%c'\r\n", input, *decoded);
+        return;
+    }
+
+    //if it is not special then is ASCII
+
+    *decoded = input;
+    //printf("decode:: character '%d'-'%c'\r\n", input, *decoded);
+}
+
 /* Decodes a 7 bit GSM encoding string to 8 bit ASCII null terminated string.
  *
  * input: ASCII 7 bit GSM string
@@ -40,9 +63,44 @@ bool isValidTextArray(uint8_t *text)
  */
 void decode(uint8_t *input, uint32_t length7bits, char *decoded)
 {
+    if (length7bits == 1)
+    {
+        if (input[0] > 127)
+        {
+            printf("decode:: CAUTION. input error ('%d'>127)\r\n", input[0]);
+            return;
+        }
+    }
+    else
+    {
+        int decodedTempcounter = 0;
+        int sevencounter = 0;
+        for (int i = 0; i < length7bits; i++)
+        {
+            uint16_t myValue = ((input[i + 1] << 8) + input[i]);
+
+            if (sevencounter == 0)
+            {
+                uint8_t myValueSub1 = myValue & 0x7F;
+                decodeOneByte(myValueSub1, &decoded[decodedTempcounter]);
+                decodedTempcounter++;
+            }
+            uint8_t myValueSub2 = (myValue >> 7 - sevencounter) & 0x7F;
+            decodeOneByte(myValueSub2, &decoded[decodedTempcounter]);
+            decodedTempcounter++;
+
+            sevencounter++;
+            if (sevencounter > 6)
+                sevencounter = 0;
+        }
+    }
+
     //TODO
-    *decoded = 0;
+    printf("decode:: input = '%s'\r\n", input);
+    printf("decode:: length7bits = '%d'\r\n", length7bits);
+    printf("decode:: decoded = '%s'\r\n", decoded);
 }
+
 /* Encodes an ASCII string to 7 bit GSM encoding.
  *
  * input: ASCII null terminated string
@@ -65,31 +123,32 @@ void encode(char *input, uint32_t *encodedLen, uint8_t *encoded)
  * returns: nothing
  */
 void testCoDec(uint8_t *encodedText)
-{   
-    if(!isValidTextArray(encodedText))
+{
+    if (!isValidTextArray(encodedText))
         return;
 
-    
-    uint8_t decoded[BUFFERSIZE];
+    char *decoded;
     uint8_t encoded[BUFFERSIZE];
     uint8_t outputLen;
-    uint32_t originalLen = strlen((const char*)encodedText);
+    uint32_t originalLen = strlen((const char *)encodedText);
     uint32_t encodedLen = 0;
 
-    decode((uint8_t*)encodedText, originalLen, (char*)decoded);
-    printf("Decoded = '%s'\r\n", decoded);
-    encode((char*)decoded, &encodedLen, encoded);
+    uint8_t charactersNum = (originalLen * 8) / 7;
+    decoded = new char[charactersNum + 1];
+    decoded[charactersNum] = '\0';
+
+    decode((uint8_t *)encodedText, originalLen, decoded);
+    printf("Decoded = '%s' \r\n", decoded);
+    encode((char *)decoded, &encodedLen, encoded);
 
     if (memcmp(encodedText, encoded, originalLen))
         printf("Error encode result does not match original encoded text\r\n");
 }
 
-void testCoDec(const char * encodedText)
+void testCoDec(const char *encodedText)
 {
     testCoDec((uint8_t *)encodedText);
 }
-
-
 
 /* Test program for the 7BIT CodDec
  *
