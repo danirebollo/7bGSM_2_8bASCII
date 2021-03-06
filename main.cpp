@@ -50,6 +50,12 @@ void encodeOneByte(uint8_t input, uint8_t *encoded)
         *encoded = 0;
         return;
     }
+    else if (((input >= 0) && (input <= 9)) || (input == 11) || (input == 12) || ((input >= 14) && (input <= 31)) || ((input >= 91) && (input <= 95)) || ((input >= 123) && (input <= 127)))
+    {
+        //return SPACE character if unknown
+        *encoded = 32;
+        return;
+    }
 
     *encoded = input;
 }
@@ -66,10 +72,13 @@ uint8_t decodeOneByte(uint8_t input)
         //*decoded = 36;
         return 36;
     }
-    //if it is not special then is ASCII
+    else if (((input >= 0) && (input <= 9)) || (input == 11) || (input == 12) || ((input >= 14) && (input <= 31)) || ((input >= 91) && (input <= 95)) || ((input >= 123) && (input <= 127)))
+    {
+        //return SPACE character if unknown
+        return 32;
+    }
 
     return input;
-    //printf("decode:: character '%d'-'%c'\r\n", input, *decoded);
 }
 
 /* Decodes a 7 bit GSM encoding string to 8 bit ASCII null terminated string.
