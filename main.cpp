@@ -14,26 +14,12 @@
 #include <stdint.h>
 #include <string.h>
 
-#define BUFFERSIZE 256
-
 //const char *ALPHABET = "@£$¥èéùìòÇ\nØø\rÅåΔ ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
 //                       "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
 
-bool isValidTextArray(uint8_t *text)
-{
-    if (text == nullptr)
-    {
-        printf("textChecks:: CAUTION. nullptr\r\n");
-        return false;
-    }
-    //TODO change BUFFERSIZE for dynamic allocation size pointer
-    if (strlen((const char *)text) >= BUFFERSIZE || strlen((const char *)text) <= 0)
-    {
-        printf("textChecks:: CAUTION. buffer overflow attempt\r\n");
-        return false;
-    }
-    return true;
-}
+//uint8_t CODECMAP[20][20]={
+//    {36,    64, },
+//    {2,     0,  }};
 
 void encodeOneByte(uint8_t input, uint8_t *encoded)
 {
@@ -64,12 +50,10 @@ uint8_t decodeOneByte(uint8_t input)
 {
     if (input == 0)
     {
-        //*decoded = 64;
         return 64;
     }
     else if (input == 2)
     {
-        //*decoded = 36;
         return 36;
     }
     else if (((input >= 0) && (input <= 9)) || (input == 11) || (input == 12) || ((input >= 14) && (input <= 31)) || ((input >= 91) && (input <= 95)) || ((input >= 123) && (input <= 127)))
@@ -91,7 +75,9 @@ uint8_t decodeOneByte(uint8_t input)
  */
 void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t decodedlen)
 {
+#ifdef DEBUG
     printf("decode:: length7bits: %d, decodedlen:%d\r\n", length7bits, decodedlen);
+#endif
     if ((length7bits == 1) && (input[0] > 127))
     {
         printf("decode:: CAUTION. input error ('%d'>127)\r\n", input[0]);
@@ -223,11 +209,8 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
  */
 void testCoDec(const char *encodedText)
 {
-    //if (!isValidTextArray(encodedText))
-    //    return;
-
     //decode
-    uint32_t originalLen = strlen(encodedText); //(sizeof(encodedText) / sizeof(uint8_t));
+    uint32_t originalLen = strlen(encodedText);
     uint8_t charactersNum = ((originalLen * 8) / 7);
     printf("Text over test: = '%s'. original size: %d, encoded size: %d \r\n", encodedText, originalLen, charactersNum);
     char decoded[charactersNum + 1] = {0};
