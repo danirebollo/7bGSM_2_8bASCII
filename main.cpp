@@ -58,15 +58,27 @@ void encodeOneByte(uint8_t input, uint8_t *encoded)
 void decodeOneByte(uint8_t input, char *decoded)
 {
     //First get special characters
-    if ((input >= 0 && input <= 31) || (input == 36) || (input >= 58 && input <= 64) || (input >= 91 && input <= 96) || (input >= 123 && input <= 127))
+    
+    if ((input >= 0 && input <= 31) || (input >= 91 && input <= 96) || (input >= 123 && input <= 127))
     {
+        printf("decodeOneByte:: CAUTION. input: '%d'\r\n", input); 
         *decoded = ' ';
+
         //TODO transform special characters
 
         //printf("decode:: character '%d'-'%c'\r\n", input, *decoded);
         return;
     }
-
+    else if (input == 36)
+    {
+        //*decoded = '¤'; //$
+        return;
+    }
+    else if (input == 64)
+    {
+        //*decoded = '¡'; //@
+        return;
+    }
     //if it is not special then is ASCII
 
     *decoded = input;
@@ -83,6 +95,7 @@ void decodeOneByte(uint8_t input, char *decoded)
  */
 void decode(uint8_t *input, uint32_t length7bits, char *decoded, uint32_t decodedlen)
 {
+    printf("decode:: length7bits: %d, decodedlen:%d\r\n", length7bits, decodedlen);
     if ((length7bits == 1) && (input[0] > 127))
     {
         printf("decode:: CAUTION. input error ('%d'>127)\r\n", input[0]);
@@ -104,15 +117,24 @@ void decode(uint8_t *input, uint32_t length7bits, char *decoded, uint32_t decode
             {
                 uint8_t myValueSub1 = myValue & 0x7F;
                 decodeOneByte(myValueSub1, &decoded[decodedTempcounter]);
+#ifdef DEBUG
+                printf("decode== decodedTempcounter:'%d', i:%d, sevencounter: %d, decodedTempcounter: %d, input: %d, myValue:%d, decoded: %d\r\n", decodedTempcounter, i, sevencounter, decodedTempcounter, input[i], myValue, myValueSub1);
+#endif
                 decodedTempcounter++;
             }
-            uint8_t myValueSub2 = (myValue >> 7 - sevencounter) & 0x7F;
+            uint16_t myValueSub2 = (myValue >> 7 - sevencounter) & 0x7F;
             decodeOneByte(myValueSub2, &decoded[decodedTempcounter]);
+#ifdef DEBUG
+            printf("decode:: decodedTempcounter:'%d', i:%d, sevencounter: %d, decodedTempcounter: %d, input: %d, myValue:%d, decoded: %d\r\n", decodedTempcounter, i, sevencounter, decodedTempcounter, input[i], myValue, myValueSub2);
+#endif
             decodedTempcounter++;
 
             sevencounter++;
             if (sevencounter > 6)
+            {
                 sevencounter = 0;
+            }
+            i++;
         }
     }
 
@@ -132,7 +154,9 @@ void decode(uint8_t *input, uint32_t length7bits, char *decoded, uint32_t decode
  */
 void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedLen)
 {
+#ifdef DEBUG
     printf("encode inputsize: '%d', outputsize: '%d' \r\n", inputsize, encodedLen);
+#endif
 
     //TODO
     uint8_t sevencounter = 0;
@@ -148,15 +172,18 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
             c1++;
         }
         encodeOneByte(input[i], &encodedarray[i]);
+#ifdef DEBUG
         printf("encode XX %d , %d\r\n", i, sevencounter);
+#endif
 
         if (sevencounter == 0)
         {
             sevencounter++;
             continue;
         }
-
+#ifdef DEBUG
         printf("encodedarray[i - 1]-[x]: %x - %x \r\n", encodedarray[i - 1], encodedarray[i]);
+#endif
 
         uint8_t ea1 = ((encodedarray[i - 1] >> (sevencounter - 1)) & 0x7F);
         uint8_t ea2 = 0;
@@ -167,7 +194,9 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
         ea2 = (ea2 << (8 - sevencounter));
 
         encoded[i - c1] = ea1 + ea2; //It is already a 8b var, no need to force to &  0xFF
+#ifdef DEBUG
         printf("encode IN (%d) i:%d , 7cnt: %d: %x-%x: %x\r\n", i - c1, i, sevencounter, ea1, ea2, encoded[i - c1]);
+#endif
 
         sevencounter++;
     }
@@ -181,39 +210,47 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
  *
  * returns: nothing
  */
-void testCoDec(uint8_t *encodedText)
+void testCoDec(const char *encodedText)
 {
-    if (!isValidTextArray(encodedText))
-        return;
+    //if (!isValidTextArray(encodedText))
+    //    return;
 
+
+    //decode
+    uint32_t originalLen = strlen(encodedText); //(sizeof(encodedText) / sizeof(uint8_t));
+    uint8_t charactersNum = ((originalLen*8)/7); 
+    printf("Testing text: = '%s'. original size: %d, encoded size: %d \r\n", encodedText, originalLen, charactersNum);
     char *decoded;
-    uint8_t *encoded;
-    uint8_t outputLen;
-    uint32_t originalLen = strlen((const char *)encodedText);
-
-    uint8_t charactersNum = (originalLen * 8) / 7;
-
     decoded = new char[charactersNum + 1];
     decoded[charactersNum] = '\0';
-
-    decode((uint8_t *)encodedText, originalLen, decoded);
+    decode((uint8_t *)encodedText, originalLen, decoded, charactersNum);
     printf("Decoded = '%s' \r\n", decoded);
+    //end decode
 
+    //Encode
     int inputsize = strlen((const char *)decoded);
-    int encodedLen = (inputsize * 7) / 8;
+    int encodedLen = inputsize - (inputsize / 8); //((inputsize+1)*7)/8
+    uint8_t *encoded;
     encoded = new uint8_t[encodedLen + 1];
     encoded[encodedLen] = '\0';
-    encode((char *)decoded, inputsize, encoded, encodedLen);
+    encode((char *)decoded, inputsize, encoded, encodedLen + 1);
 
+    printf("Encoded = '%s': ", encoded);
+    for (int i = 0; i < encodedLen; i++)
+    {
+        printf("'%d',", encoded[i]);
+    }
+    printf("\r\n");
+    //end encode
 
     if (memcmp(encodedText, encoded, originalLen))
         printf("Error encode result does not match original encoded text\r\n");
+    else
+    {
+        printf("PASS\r\n");
+    }
 }
 
-void testCoDec(const char *encodedText)
-{
-    testCoDec((uint8_t *)encodedText);
-}
 
 /* Test program for the 7BIT CodDec
  *
