@@ -7,6 +7,11 @@
     4- Code must be optimized to use little Flash and little RAM, as it would if you were coding FW.
     5- To submit your solution for evaluation, you must create a private repository in your own GitHub account. Name the new repository “LastnamesFirstname-Geotab-FwChallenge”, 
         upload your code in a single commit in branch “master”, and add users @DVLG and @csanchezdll as collaborators to that repository.
+        
+        GSM ALPHABET:
+        //const char *ALPHABET = "@£$¥èéùìòÇ\nØø\rÅåΔ ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
+        //                       "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+
         */
 
 #include <stdlib.h>
@@ -15,13 +20,12 @@
 #include <string.h>
 
 //#define DEBUG
-//const char *ALPHABET = "@£$¥èéùìòÇ\nØø\rÅåΔ ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
-//                       "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
 
-//uint8_t CODECMAP[20][20]={
-//    {36,    64, },
-//    {2,     0,  }};
-
+/* Decode one ASCII character into GSM7b character
+ *
+ * input: ASCII character (given with his hex value)
+ * encoded: returns encoded GSM7b character value
+ */
 void encodeOneByte(uint8_t input, uint8_t *encoded)
 {
     //TODO reverse decoder.
@@ -47,6 +51,12 @@ void encodeOneByte(uint8_t input, uint8_t *encoded)
     *encoded = input;
 }
 
+/* Decode one GSM7b character into ASCII character
+ *
+ * input: GSM7b character (given with his hex value)
+ *
+ * returns: decoded ASCII character
+ */
 uint8_t decodeOneByte(uint8_t input)
 {
     if (input == 0)
@@ -208,7 +218,6 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
  *
  * returns: success
  */
-
 bool testCoDec(const uint8_t *encodedText, uint8_t encsize)
 {
 #ifdef DEBUG
@@ -216,10 +225,10 @@ bool testCoDec(const uint8_t *encodedText, uint8_t encsize)
 #endif
     //decode
     uint8_t originalLen = encsize;
-    //Needed to fix @ character in first place -alone: "\x0"-. 
+    //Needed to fix @ character in first place -alone: "\x0"-.
     //Calling this function with uint8_t instead char it is not needed.
     //bug described in README.
-    if (originalLen == 0 && encodedText != nullptr && encodedText[0] == 0) 
+    if (originalLen == 0 && encodedText != nullptr && encodedText[0] == 0)
         originalLen = 1;
 
     uint8_t charactersNum = ((originalLen * 8) / 7);
