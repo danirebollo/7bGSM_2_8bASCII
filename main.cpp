@@ -208,13 +208,20 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
  *
  * returns: success
  */
-bool testCoDec(const char *encodedText)
+
+bool testCoDec(const uint8_t *encodedText, uint8_t encsize)
 {
 #ifdef DEBUG
     printf("--- ----> STARTING TEST <---- ---\r\n");
 #endif
     //decode
-    uint32_t originalLen = strlen(encodedText);
+    uint8_t originalLen = encsize;
+    //Needed to fix @ character in first place -alone: "\x0"-. 
+    //Calling this function with uint8_t instead char it is not needed.
+    //bug described in README.
+    if (originalLen == 0 && encodedText != nullptr && encodedText[0] == 0) 
+        originalLen = 1;
+
     uint8_t charactersNum = ((originalLen * 8) / 7);
 #ifdef DEBUG
     printf("Text over test: = '%s'. original size: %d, encoded size: %d \r\n", encodedText, originalLen, charactersNum);
@@ -260,6 +267,10 @@ bool testCoDec(const char *encodedText)
     }
     free(encoded);
     return success;
+}
+bool testCoDec(const char *encodedText)
+{
+    return testCoDec((uint8_t *)encodedText, strlen(encodedText));
 }
 
 /* Test program for the 7BIT CodDec
