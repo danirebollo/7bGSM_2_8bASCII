@@ -1,19 +1,3 @@
-//GSM CODEC 03.38
-// The decoder must transform GSM 03.38 code to ASCII, and ASCII to GSM 03.38.
-/*  1- Translate every character which has a valid codification in ASCII and GSM 03.38, some characters are impossible 
-        to translate between both encodings. When a character cannot be translated it shall be substituted by a white space (“ “).
-    2- You can modify the base code as you wish, add extra tests, etc. Do not hesitate to make changes to the code base if you find any error or possible improvement.
-    3- A Makefile with basic options must be provided.
-    4- Code must be optimized to use little Flash and little RAM, as it would if you were coding FW.
-    5- To submit your solution for evaluation, you must create a private repository in your own GitHub account. Name the new repository “LastnamesFirstname-Geotab-FwChallenge”, 
-        upload your code in a single commit in branch “master”, and add users @DVLG and @csanchezdll as collaborators to that repository.
-        
-        GSM ALPHABET:
-        //const char *ALPHABET = "@£$¥èéùìòÇ\nØø\rÅåΔ ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
-        //                       "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
-
-        */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -132,7 +116,6 @@ void decode(uint8_t *input, uint8_t length7bits, uint8_t *decoded, uint8_t decod
     }
     decoded[decodedlen] = '\0';
 
-//TODO
 #ifdef DEBUG
     printf("decode:: input = '%s': ", input);
     for (int i = 0; i < length7bits; i++)

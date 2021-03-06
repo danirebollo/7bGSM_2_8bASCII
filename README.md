@@ -10,9 +10,6 @@ The decoder must transform GSM 03.38 code to ASCII, and ASCII to GSM 03.38.
 
 4- Code must be optimized to use little Flash and little RAM, as it would if you were coding FW.
 
-5- To submit your solution for evaluation, you must create a private repository in your own GitHub account. Name the new repository “LastnamesFirstname-Geotab-FwChallenge”, 
-   upload your code in a single commit in branch “master”, and add users @DVLG and @csanchezdll as collaborators to that repository.
-
 # Known bugs #
 ## '@' character problem ## 
 -'@' character problem: 
