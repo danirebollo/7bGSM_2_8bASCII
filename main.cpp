@@ -80,7 +80,7 @@ uint8_t decodeOneByte(uint8_t input)
  *
  * returns: nothing
  */
-void decode(uint8_t *input, uint32_t length7bits, char *decoded, uint32_t decodedlen)
+void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t decodedlen)
 {
     printf("decode:: length7bits: %d, decodedlen:%d\r\n", length7bits, decodedlen);
     if ((length7bits == 1) && (input[0] > 127))
@@ -125,11 +125,25 @@ void decode(uint8_t *input, uint32_t length7bits, char *decoded, uint32_t decode
             i++;
         }
     }
+    decoded[decodedlen] = '\0';
 
     //TODO
-    printf("decode:: input = '%s'\r\n", input);
+    #ifdef DEBUG
+    printf("decode:: input = '%s': ", input);
+    for (int i = 0; i < length7bits; i++)
+    {
+        printf("'%x',", input[i]);
+    }
+    printf("\r\n");
+    printf("decode:: output = '%s': ", (uint8_t*)decoded);
+    for (int i = 0; i < decodedlen; i++)
+    {
+        printf("'%x',", decoded[i]);
+    }
+    printf("\r\n");
     printf("decode:: length7bits = '%d'\r\n", length7bits);
     printf("decode:: decoded = '%s'\r\n", decoded);
+    #endif
 }
 
 /* Encodes an ASCII string to 7 bit GSM encoding.
@@ -208,7 +222,8 @@ void testCoDec(const char *encodedText)
     uint8_t charactersNum = ((originalLen * 8) / 7);
     printf("Text over test: = '%s'. original size: %d, encoded size: %d \r\n", encodedText, originalLen, charactersNum);
     char decoded[charactersNum + 1] = {0};
-    decode((uint8_t *)encodedText, originalLen, decoded, charactersNum);
+    
+    decode((uint8_t *)encodedText, originalLen, (uint8_t*)decoded, charactersNum);
     printf("Decoded = '%s' \r\n", decoded);
     //end decode
 
@@ -236,6 +251,7 @@ void testCoDec(const char *encodedText)
     {
         printf("PASS\r\n");
     }
+    free(encoded);
 }
 
 
