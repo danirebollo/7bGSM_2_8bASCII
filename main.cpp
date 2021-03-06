@@ -83,7 +83,7 @@ uint8_t decodeOneByte(uint8_t input)
  *
  * returns: nothing
  */
-void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t decodedlen)
+void decode(uint8_t *input, uint8_t length7bits, uint8_t *decoded, uint8_t decodedlen)
 {
 #ifdef DEBUG
     printf("decode:: length7bits: %d, decodedlen:%d\r\n", length7bits, decodedlen);
@@ -95,8 +95,8 @@ void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t dec
     }
     else
     {
-        uint16_t decodedTempcounter = 0;
-        uint16_t sevencounter = 0;
+        uint8_t decodedTempcounter = 0;
+        uint8_t sevencounter = 0;
         int i = 0;
         for (decodedTempcounter = 0; decodedTempcounter < decodedlen;)
         {
@@ -114,7 +114,7 @@ void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t dec
 #endif
                 decodedTempcounter++;
             }
-            uint16_t myValueSub2 = (myValue >> 7 - sevencounter) & 0x7F;
+            uint8_t myValueSub2 = (myValue >> 7 - sevencounter) & 0x7F;
             decoded[decodedTempcounter] = decodeOneByte(myValueSub2);
 
 #ifdef DEBUG
@@ -159,7 +159,7 @@ void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t dec
  *
  * returns: nothing
  */
-void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedLen)
+void encode(char *input, uint8_t inputsize, uint8_t *encoded, uint8_t encodedLen)
 {
 #ifdef DEBUG
     printf("encode inputsize: '%d', outputsize: '%d' \r\n", inputsize, encodedLen);
