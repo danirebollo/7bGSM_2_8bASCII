@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <string.h>
 
+//#define DEBUG
 //const char *ALPHABET = "@£$¥èéùìòÇ\nØø\rÅåΔ ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
 //                       "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
 
@@ -100,17 +101,17 @@ void decode(uint8_t *input, uint32_t length7bits, uint8_t *decoded, uint32_t dec
                 uint8_t myValueSub1 = myValue & 0x7F;
                 decoded[decodedTempcounter] = decodeOneByte(myValueSub1);
 #ifdef DEBUG
-                printf("decode== decodedTempcounter:'%d', i:%d, sevencounter: %d, decodedTempcounter: %d, input: %d, myValue:%d, decoded: %d\r\n", decodedTempcounter, i, sevencounter, decodedTempcounter, input[i], myValue, myValueSub1);
+                printf("decode== decodedTempcounter:'%d', i:%d, sevencounter: %d, decodedTempcounter: %d, input: %d, myValue:%d, decoded: %x, decoded: %x\r\n", decodedTempcounter, i, sevencounter, decodedTempcounter, input[i], myValue, myValueSub1, decoded[decodedTempcounter]);
 #endif
                 decodedTempcounter++;
             }
             uint16_t myValueSub2 = (myValue >> 7 - sevencounter) & 0x7F;
             decoded[decodedTempcounter] = decodeOneByte(myValueSub2);
-            decodedTempcounter++;
 
 #ifdef DEBUG
-            printf("decode:: decodedTempcounter:'%d', i:%d, sevencounter: %d, decodedTempcounter: %d, input: %d, myValue:%d, decoded: %d\r\n", decodedTempcounter, i, sevencounter, decodedTempcounter, input[i], myValue, myValueSub2);
+            printf("decode:: decodedTempcounter:'%d', i:%d, sevencounter: %d, decodedTempcounter: %d, input: %d, myValue:%d, decoded: %x, decoded: %x\r\n", decodedTempcounter, i, sevencounter, decodedTempcounter, input[i], myValue, myValueSub2, decoded[decodedTempcounter]);
 #endif
+            decodedTempcounter++;
 
             sevencounter++;
             if (sevencounter > 6)
@@ -209,14 +210,20 @@ void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedL
  */
 bool testCoDec(const char *encodedText)
 {
+#ifdef DEBUG
+    printf("--- ----> STARTING TEST <---- ---\r\n");
+#endif
     //decode
     uint32_t originalLen = strlen(encodedText);
     uint8_t charactersNum = ((originalLen * 8) / 7);
+#ifdef DEBUG
     printf("Text over test: = '%s'. original size: %d, encoded size: %d \r\n", encodedText, originalLen, charactersNum);
+#endif
     char decoded[charactersNum + 1] = {0};
-
     decode((uint8_t *)encodedText, originalLen, (uint8_t *)decoded, charactersNum);
+#ifdef DEBUG
     printf("Decoded = '%s' \r\n", decoded);
+#endif
     //end decode
 
     //Encode
@@ -240,11 +247,15 @@ bool testCoDec(const char *encodedText)
     bool success = false;
     if (memcmp(encodedText, encoded, originalLen))
     {
+#ifdef DEBUG
         printf("@@@ @@@ ----> FAIL <---- @@@ @@@\r\nError encode result does not match original encoded text\r\n");
+#endif
     }
     else
     {
+#ifdef DEBUG
         printf("### ----> PASS <---- ###\r\n");
+#endif
         success = true;
     }
     free(encoded);
