@@ -81,23 +81,24 @@ void decodeOneByte(uint8_t input, char *decoded)
  *
  * returns: nothing
  */
-void decode(uint8_t *input, uint32_t length7bits, char *decoded)
+void decode(uint8_t *input, uint32_t length7bits, char *decoded, uint32_t decodedlen)
 {
-    if (length7bits == 1)
+    if ((length7bits == 1) && (input[0] > 127))
     {
-        if (input[0] > 127)
-        {
-            printf("decode:: CAUTION. input error ('%d'>127)\r\n", input[0]);
-            return;
-        }
+        printf("decode:: CAUTION. input error ('%d'>127)\r\n", input[0]);
+        return;
     }
     else
     {
-        uint8_t decodedTempcounter = 0;
-        uint8_t sevencounter = 0;
-        for (int i = 0; i < length7bits; i++)
+        uint16_t decodedTempcounter = 0;
+        uint16_t sevencounter = 0;
+        int i = 0;
+        for (decodedTempcounter = 0; decodedTempcounter < decodedlen;)
         {
-            uint16_t myValue = ((input[i + 1] << 8) + input[i]);
+            uint16_t v2 = 0;
+            if (i < length7bits - 1)
+                v2 = (input[i + 1] << 8);
+            uint16_t myValue = (v2 + input[i]);
 
             if (sevencounter == 0)
             {
@@ -131,30 +132,45 @@ void decode(uint8_t *input, uint32_t length7bits, char *decoded)
  */
 void encode(char *input, uint32_t inputsize, uint8_t *encoded, uint32_t encodedLen)
 {
+    printf("encode inputsize: '%d', outputsize: '%d' \r\n", inputsize, encodedLen);
+
     //TODO
     uint8_t sevencounter = 0;
     uint8_t encodedarray[inputsize];
+    int encodedcounter = 0;
+    int c1 = 1;
 
-    for (int i = 0; i < inputsize; i++)
+    for (int i = 0; i <= inputsize; i++)
     {
-        encodeOneByte(input[i], &encodedarray[i]);
-
-        if (i > 0)
+        if (sevencounter > 7)
         {
-            uint8_t ea1 = ((encodedarray[i - 1] >> (sevencounter)) & 0x7F);
-            uint8_t ea2 = (encodedarray[i] << (7 - sevencounter));
-
-            encoded[i - 1] = ea1 + ea2; //It is already a 8b var, no need to force to &  0xFF
-
-            sevencounter++;
-            if (sevencounter > 6)
-                sevencounter = 0;
+            sevencounter = 0;
+            c1++;
         }
+        encodeOneByte(input[i], &encodedarray[i]);
+        printf("encode XX %d , %d\r\n", i, sevencounter);
+
+        if (sevencounter == 0)
+        {
+            sevencounter++;
+            continue;
+        }
+
+        printf("encodedarray[i - 1]-[x]: %x - %x \r\n", encodedarray[i - 1], encodedarray[i]);
+
+        uint8_t ea1 = ((encodedarray[i - 1] >> (sevencounter - 1)) & 0x7F);
+        uint8_t ea2 = 0;
+        if (sevencounter == 7)
+            ea2 = 13;
+        if (i != inputsize)
+            ea2 = encodedarray[i];
+        ea2 = (ea2 << (8 - sevencounter));
+
+        encoded[i - c1] = ea1 + ea2; //It is already a 8b var, no need to force to &  0xFF
+        printf("encode IN (%d) i:%d , 7cnt: %d: %x-%x: %x\r\n", i - c1, i, sevencounter, ea1, ea2, encoded[i - c1]);
+
+        sevencounter++;
     }
-
-    encoded[encodedLen] = '\0';
-
-    //printf("encoded %d bytes\r\n", inputsize);
 }
 
 /* Tests an encoded string, it first decodes the message and prints the ASCII output and then
