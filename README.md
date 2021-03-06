@@ -15,6 +15,7 @@ The decoder must transform GSM 03.38 code to ASCII, and ASCII to GSM 03.38.
 
 # Known bugs #
 ## '@' character problem ## 
+-'@' character problem: 
 (0x00 in GSM encoding, 0x40 in ASCII) cant be the first character in the decoding string. This is a C limitation since hex tring with 0x0 is interpreted as null value.
 
 One way to solve this will be using uint8 arrays instead strings.       
