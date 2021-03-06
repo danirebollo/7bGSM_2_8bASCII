@@ -32,3 +32,5 @@ so function can be called directly with uint8_t array full with 0x0 characters w
 
 # Debug options #
 Comment/uncomment preprocessor directive "#define DEBUG" (main.cpp line 17) to see debug traces.
+
+Flag -DDEBUG in makefile can be used as well.
