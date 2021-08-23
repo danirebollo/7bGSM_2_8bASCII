@@ -1,3 +1,8 @@
+# Scope #
+This repository goal is to solve some Geotab stuff given problem with the argument of a hiring challenge.
+
+After days of coding no useful answer was replied so maybe they don't care about the people who spent his time doing this challenges without any payment or maybe they only want the code to solve his internal problems without the idea of hiring someone. Who knows.
+
 # Geotab specifications #
 ## Firmware Challenge 1 ##
 ### Description ###
